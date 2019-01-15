@@ -1,7 +1,7 @@
 
 public class BankAccount {
 	
-	int accountNumber;
+	private int accountNumber;
 	int pinNumber;
 	double savingsBalance;
 	double checkingsBalance;
@@ -44,14 +44,13 @@ public class BankAccount {
 	}
 	
 	//get the checking balance if it has checking account
-	public double getCheckingsBalance()
-	{
-		if (this.hasChecking)
-		{
+	public double getCheckingsBalance()	{
+		
+		if (hasChecking()){
+			
 			return this.checkingsBalance;
-		}
-		else
-		{
+			
+		} else {
 			throw new UnsupportedOperationException();
 		}
 	}
