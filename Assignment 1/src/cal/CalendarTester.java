@@ -3,14 +3,13 @@ package cal;
 public class CalendarTester {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		
+		// Creating the calendar 2019 object and initializing it
 		Calendar2019 cal = new Calendar2019();
-		cal.createCalendar();
-		//cal.constructCalendarFrame();
+		cal.initCalendar2019();
 		
-		LayoutManagerCalendar ui = new LayoutManagerCalendar();
-		ui.constructCalendarFrame(cal);
+		// building the calendar GUI 
+		LayoutManagerCalendar gui = new LayoutManagerCalendar();
+		gui.constructCalendarFrame(cal);
 	}
 
 }
