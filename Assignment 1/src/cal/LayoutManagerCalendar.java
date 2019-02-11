@@ -8,7 +8,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 
 public class LayoutManagerCalendar extends JFrame {
-	private static final String logo = "sculogo.png";
+	private static final String logo = "/sculogo.png";
 	private String[] daysInWeek = { "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY" };
 	private String[] monthsString = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 	
