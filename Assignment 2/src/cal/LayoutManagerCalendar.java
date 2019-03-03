@@ -18,34 +18,92 @@ public class LayoutManagerCalendar extends JFrame {
 	
 	public void constructCalendarFrame(Calendar2019 cal) {
 		
-		// creating three JPanel for the Calendar
-		JPanel topPanel = new JPanel(new FlowLayout());
-		
-		JPanel midPanel = new JPanel(new FlowLayout());
-		midPanel.setBackground(bgGray);
-		
-		JPanel bottomPanel = new JPanel(new FlowLayout());
-		bottomPanel.setBackground(bgGray);
-		
 		// setting the frame with certain attributes
 		setTitle("SCU Calendar 2019");
-		setLayout(new BorderLayout());
-		setSize(1000, 900);
+		setSize(1500, 900);
 		setResizable(false);
 		
-		// Calling functions to construct content in the panels
-		setTop(topPanel);
-		setWeekGrid(midPanel);
-		setDaysGrid(bottomPanel, cal);
+		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.X_AXIS));
 		
-		// Adding the panels to the frame
-		add(topPanel, BorderLayout.NORTH);
-		add(midPanel, BorderLayout.CENTER);
-		add(bottomPanel, BorderLayout.SOUTH);
+		// left panel
+		JPanel left = new JPanel();
+		left.setAlignmentX(Component.LEFT_ALIGNMENT);
+		getContentPane().add(left);
+		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+		
+		// creating top JPanel for the Calendar
+		JPanel topPanel = new JPanel(new FlowLayout());
+		topPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
+		left.add(topPanel);
+		setTop(topPanel);
+		
+		// mid panel
+		JPanel midPanel = new JPanel(new FlowLayout());
+		midPanel.setBackground(bgGray);
+		midPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
+		left.add(midPanel);
+		setWeekGrid(midPanel);
+		
+		// bottom panel
+		JPanel bottomPanel = new JPanel(new FlowLayout());
+		bottomPanel.setBackground(bgGray);
+		bottomPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
+		left.add(bottomPanel);
+		setDaysGrid(bottomPanel, cal);
+
+		// right panel
+		JPanel right = new JPanel();
+		right.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		getContentPane().add(right);
+		right.setLayout(new BorderLayout());
+		
+		// radio panel section
+		JPanel topEvent = new JPanel(new BorderLayout());
+		right.add(topEvent, BorderLayout.NORTH);
+		setRadioBtn(topEvent);
+		
+		// event panel section
+		JPanel bottomEvent = new JPanel();
+		bottomEvent.setLayout(new BoxLayout(bottomEvent, BoxLayout.Y_AXIS));
+		bottomEvent.setBackground(Color.green);
+		right.add(bottomEvent, BorderLayout.CENTER);
+		
+		setEvents(bottomEvent);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		pack();
 		setVisible(true);
+		
+	}
+	
+	private void setEvents(JPanel bottomEvent) {
+		
+		JPanel titleP = new JPanel(new FlowLayout());
+		titleP.setAlignmentY(Component.LEFT_ALIGNMENT);
+		JLabel titleL = new JLabel("Customize Calendar");
+		titleP.add(titleL);
+		bottomEvent.add(titleP);
+		
+	}
+	
+	private void setRadioBtn(JPanel topEvent) {
+		JPanel clearP = new JPanel();
+		JLabel s = new JLabel();
+		s.setPreferredSize(new Dimension(200, 120));
+		clearP.add(s);
+		
+		JPanel radioP = new JPanel(new GridLayout(0,3));
+		
+		JRadioButton radioMonth = new JRadioButton("Month");
+		radioP.add(radioMonth);
+		JRadioButton radioWeek = new JRadioButton("Week");
+		radioP.add(radioWeek);
+		JRadioButton radioDay = new JRadioButton("Day");
+		radioP.add(radioDay);
+		
+		topEvent.add(clearP, BorderLayout.NORTH);
+		topEvent.add(radioP, BorderLayout.SOUTH);
+		
 		
 	}
 	
@@ -171,8 +229,9 @@ public class LayoutManagerCalendar extends JFrame {
 		JScrollPane scroll = new JScrollPane(bottomGridP);
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scroll.setPreferredSize(new Dimension(1200,750));
+		scroll.setPreferredSize(new Dimension(1150,750));
 		scroll.setBackground(bgGray);
+		
 		bottomPanel.add(scroll);
 
 	}
