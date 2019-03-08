@@ -6,17 +6,45 @@ import java.util.*;
 public class Calendar2019 {
 	
 	private Calendar calendar;
+	private ArrayList<Date> eventList = new ArrayList<Date>();
+	private ArrayList<String> eventNameList = new ArrayList<String>();
 	
 	public Calendar2019() {
 		
 	}
 	
-	public Calendar2019(Calendar calendar) {
+	public Calendar2019(Calendar calendar, ArrayList<Date> eventList, ArrayList<String> eventNameList) {
 		this.calendar = calendar;
+		this.eventList = eventList;
+		this.eventNameList = eventNameList;
 	}
 	
 	Calendar getCalendar() {
 		return this.calendar;
+	}
+	
+	public ArrayList<Date> getEventList(){
+		return this.eventList;
+	}
+	
+	public void setEvent(Date event) {
+		this.eventList.add(event);
+	}
+	
+	public void removeEvent(Date event) {
+		this.eventList.remove(event);
+	}
+	
+	public ArrayList<String> getEventNameList(){
+		return this.eventNameList;
+	}
+	
+	public void setEventName(String event) {
+		this.eventNameList.add(event);
+	}
+	
+	public void removeEventName(String event) {
+		this.eventNameList.remove(event);
 	}
 	
 	public int getDaysInMonth(int month) {
@@ -82,6 +110,26 @@ public class Calendar2019 {
 		else 
 			return "";
 		
+	}
+	
+	public String checkEvents(Calendar cal) {
+		Calendar tempCal = Calendar.getInstance();
+		
+		for (int i = 0; i < eventList.size(); i++) {
+			
+			tempCal.setTime(eventList.get(i));
+			
+			if (cal.get(Calendar.DAY_OF_WEEK) == tempCal.get(Calendar.DAY_OF_WEEK) && 
+					cal.get(Calendar.DAY_OF_MONTH) == tempCal.get(Calendar.DAY_OF_MONTH) && 
+					cal.get(Calendar.MONTH) == tempCal.get(Calendar.MONTH)) {
+				//System.out.println("eventlist date: " + eventList.get(i).toString());
+				//System.out.println("cal date: " + cal.getTime().toString());
+				//System.out.println("Event name: " + eventNameList.get(i));
+				return eventNameList.get(i);
+			}
+		}
+		
+		return "";
 	}
 	
 	public void initCalendar2019() {

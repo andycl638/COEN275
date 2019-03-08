@@ -1,113 +1,365 @@
 package cal;
 import java.awt.*;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
-import javax.swing.border.MatteBorder;
+
 
 public class LayoutManagerCalendar extends JFrame {
 	private static final String logo = "/sculogo.png";
-	private String[] daysInWeek = { "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY" };
-	private String[] monthsString = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
+	private static String[] daysInWeek = { "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY" };
+	static String[] monthsString = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 	
-	private static Color scuRed = new Color(181,0,67); // scu red color
-	private static Color bgGray = new Color(77, 77, 77); // darker gray
-	private static Color contentGray = new Color(179, 179, 179); // lighter grey
+	static protected Color scuRed = new Color(181,0,67); // scu red color
+	static protected Color bgGray = new Color(77, 77, 77); // darker gray
+	static protected Color contentGray = new Color(179, 179, 179); // lighter grey
+	
+	static protected Color selectedColor = scuRed;
+	
+	private MonthDisplay monthDisplay; 
+	private WeekDisplay weekDisplay;
+	private DayDisplay dayDisplay;
+	
+	private int displayType = 0;
+	
+	// panels
+	private JList<Object> eventList = new JList<Object>();
+	private JComboBox<String> comboBox = new JComboBox<String>(new DefaultComboBoxModel<String>(new String[] {"red", "green", "white", "blue", "pink"}));
+	
+	LayoutManagerCalendar(){
+		this.monthDisplay = new MonthDisplay();
+		this.weekDisplay = new WeekDisplay();
+		this.dayDisplay = new DayDisplay();
+	}
 	
 	public void constructCalendarFrame(Calendar2019 cal) {
 		
 		// setting the frame with certain attributes
 		setTitle("SCU Calendar 2019");
-		setSize(1500, 900);
+		setSize(1300, 970);
 		setResizable(false);
-		
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.X_AXIS));
 		
-		// left panel
-		JPanel left = new JPanel();
-		left.setAlignmentX(Component.LEFT_ALIGNMENT);
-		getContentPane().add(left);
-		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+		// Creating overall panel for calendar section
+		JPanel calendarBoxLayout = new JPanel();
+		calendarBoxLayout.setAlignmentX(Component.LEFT_ALIGNMENT);
+		calendarBoxLayout.setPreferredSize(new Dimension(1100, 970));
+		calendarBoxLayout.setLayout(new BoxLayout(calendarBoxLayout, BoxLayout.Y_AXIS));
 		
-		// creating top JPanel for the Calendar
-		JPanel topPanel = new JPanel(new FlowLayout());
-		topPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
-		left.add(topPanel);
-		setTop(topPanel);
+		getContentPane().add(calendarBoxLayout);
 		
-		// mid panel
-		JPanel midPanel = new JPanel(new FlowLayout());
-		midPanel.setBackground(bgGray);
-		midPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
-		left.add(midPanel);
-		setWeekGrid(midPanel);
+		// creating title JPanel for the Calendar
+		JPanel titlePanel = new JPanel(new FlowLayout());
+		titlePanel.setAlignmentY(Component.LEFT_ALIGNMENT);
+		calendarBoxLayout.add(titlePanel);
+		setTitle(titlePanel);
 		
-		// bottom panel
-		JPanel bottomPanel = new JPanel(new FlowLayout());
-		bottomPanel.setBackground(bgGray);
-		bottomPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
-		left.add(bottomPanel);
-		setDaysGrid(bottomPanel, cal);
-
+		// Creating week panel
+		JPanel weekPanel = new JPanel(new FlowLayout());
+		weekPanel.setBackground(bgGray);
+		weekPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
+		calendarBoxLayout.add(weekPanel);
+		setWeekGrid(weekPanel);
+		
+		// creating date view panel
+		JPanel dateViewPanel = new JPanel(new FlowLayout());
+		dateViewPanel.setBackground(bgGray);
+		dateViewPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
+		calendarBoxLayout.add(dateViewPanel);
+		dateViewPanel.setLayout(new BoxLayout(dateViewPanel, BoxLayout.X_AXIS));
+		this.monthDisplay.setMonthGrid(dateViewPanel, cal);
+		
 		// right panel
-		JPanel right = new JPanel();
-		right.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		getContentPane().add(right);
-		right.setLayout(new BorderLayout());
+		JPanel eventLayout = new JPanel();
+		eventLayout.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		getContentPane().add(eventLayout);
+		eventLayout.setLayout(new BorderLayout());
 		
 		// radio panel section
-		JPanel topEvent = new JPanel(new BorderLayout());
-		right.add(topEvent, BorderLayout.NORTH);
-		setRadioBtn(topEvent);
+		JPanel togglePanel = new JPanel(new BorderLayout());
+		eventLayout.add(togglePanel, BorderLayout.NORTH);
+		setRadioBtn(togglePanel, dateViewPanel, weekPanel, cal);
 		
 		// event panel section
-		JPanel bottomEvent = new JPanel();
-		bottomEvent.setLayout(new BoxLayout(bottomEvent, BoxLayout.Y_AXIS));
-		bottomEvent.setBackground(Color.green);
-		right.add(bottomEvent, BorderLayout.CENTER);
-		
-		setEvents(bottomEvent);
+		JPanel customEventPanel = new JPanel();
+		customEventPanel.setLayout(new BoxLayout(customEventPanel, BoxLayout.Y_AXIS));
+		eventLayout.add(customEventPanel, BorderLayout.CENTER);
+		setEvents(customEventPanel, dateViewPanel, weekPanel, cal);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		pack();
 		setVisible(true);
+	}
+	
+	private void setEvents (JPanel customEventPanel, JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+		JPanel clearLbl2 = new JPanel();
+		clearLbl2.setPreferredSize(new Dimension(300, 20));
+		customEventPanel.add(clearLbl2);
+		
+		JLabel lblCustomizeEvent = new JLabel("Customize Event");
+		lblCustomizeEvent.setAlignmentX(Component.CENTER_ALIGNMENT);
+		customEventPanel.add(lblCustomizeEvent);
+		
+		JPanel clearLbl3 = new JPanel();
+		clearLbl3.setPreferredSize(new Dimension(300, 20));
+		customEventPanel.add(clearLbl3);
+		
+		JPanel eventCreationP = new JPanel();
+		customEventPanel.add(eventCreationP);
+		eventCreationP.setLayout(new BoxLayout(eventCreationP, BoxLayout.X_AXIS));
+		
+		JPanel eventNameP = new JPanel();
+		eventCreationP.add(eventNameP);
+		eventNameP.setLayout(new BoxLayout(eventNameP, BoxLayout.Y_AXIS));
+		
+		JLabel eventName = new JLabel("Event Name:");
+		eventNameP.add(eventName);
+		
+		JPanel eventNameTxtPanel = new JPanel();
+		eventNameP.add(eventNameTxtPanel);
+		
+		JTextField eventNameTxt = new JTextField();
+		eventNameTxtPanel.add(eventNameTxt);
+		eventNameTxt.setColumns(10);
+		
+		JPanel eventDateP = new JPanel();
+		eventCreationP.add(eventDateP);
+		eventDateP.setLayout(new BoxLayout(eventDateP, BoxLayout.Y_AXIS));
+		
+		JLabel eventDate = new JLabel("Event Date:");
+		eventDateP.add(eventDate);
+		
+		JPanel eventDateTxtPanel = new JPanel();
+		eventDateP.add(eventDateTxtPanel);
+		
+		JTextField eventDateTxt = new JTextField();
+		eventDateTxtPanel.add(eventDateTxt);
+		eventDateTxt.setColumns(10);
+		
+		JPanel eventBtnP = new JPanel();
+		eventCreationP.add(eventBtnP);
+		eventBtnP.setLayout(new BoxLayout(eventBtnP, BoxLayout.Y_AXIS));
+		
+		JLabel clearLbl4 = new JLabel(" ");
+		eventBtnP.add(clearLbl4);
+		
+		JPanel eventBtnPanel2 = new JPanel();
+		eventBtnP.add(eventBtnPanel2);
+		
+		JButton btnAddEvent = new JButton("Add Event");
+		eventBtnPanel2.add(btnAddEvent);
+		
+		JPanel clearLbl5 = new JPanel();
+		clearLbl5.setPreferredSize(new Dimension(300, 20));
+		customEventPanel.add(clearLbl5);
+		
+		JPanel changeTextP = new JPanel();
+		customEventPanel.add(changeTextP);
+		changeTextP.setLayout(new BoxLayout(changeTextP, BoxLayout.Y_AXIS));
+		
+		JLabel changeTextLbl = new JLabel("Change Text Color:");
+		changeTextLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+		changeTextP.add(changeTextLbl);
+		
+		changeTextP.add(comboBox);
+		
+		JPanel clearLbl6 = new JPanel();
+		clearLbl6.setPreferredSize(new Dimension(300, 20));
+		customEventPanel.add(clearLbl6);
+		
+		JPanel historyP = new JPanel();
+		customEventPanel.add(historyP);
+		historyP.setLayout(new BorderLayout(0, 0));
+		
+		JLabel lblHistory = new JLabel("History:");
+		historyP.add(lblHistory, BorderLayout.NORTH);
+		
+		eventList.setListData(cal.getEventNameList().toArray());
+		historyP.add(eventList, BorderLayout.CENTER);
+		//JTextPane textPane = new JTextPane();
+		//historyP.add(textPane, BorderLayout.CENTER);
+		
+		JButton btnRemove = new JButton("Remove");
+		historyP.add(btnRemove, BorderLayout.SOUTH);
+		
+		addEventAction(btnAddEvent, eventNameTxt, eventDateTxt, dateViewPanel, weekPanel, cal);
+		removeEventAction(btnRemove, eventNameTxt, eventDateTxt, dateViewPanel, weekPanel, cal);
+
+	}
+	
+	private void getPickedColor() {
+		String color = comboBox.getSelectedItem().toString();
+		if (color.equalsIgnoreCase("red")) {
+			selectedColor = scuRed;
+		}
+		if (color.equalsIgnoreCase("green")) {
+			selectedColor = Color.GREEN;
+		}
+		if (color.equalsIgnoreCase("white")) {
+			selectedColor = Color.WHITE;
+		}
+		if (color.equalsIgnoreCase("blue")) {
+			selectedColor = Color.BLUE;
+		}
+		if (color.equalsIgnoreCase("pink")) {
+			selectedColor = Color.PINK;
+		}
+	}
+	
+	private void removeEventAction(JButton btnRemove, JTextField eventNameTxt, JTextField eventDateTxt, JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+		btnRemove.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				System.out.println("remove btn clicked.");
+				
+				// check that an event is selected before removing it
+				if (!eventList.isSelectionEmpty()) {
+					// repaint month display
+					if (displayType == 0) {
+						cal.getEventNameList().remove(eventList.getSelectedIndex());
+						cal.getEventList().remove(eventList.getSelectedIndex());
+						eventList.setListData(cal.getEventNameList().toArray());
+						repaintMonth(dateViewPanel, weekPanel, cal);
+					}
+					// repaint week display
+					else if (displayType == 1) {
+						cal.getEventNameList().remove(eventList.getSelectedIndex());
+						cal.getEventList().remove(eventList.getSelectedIndex());
+						eventList.setListData(cal.getEventNameList().toArray());
+						repaintWeek(dateViewPanel, weekPanel, cal);
+					}
+					// repaint day display
+					else if (displayType == 2) {
+						cal.getEventNameList().remove(eventList.getSelectedIndex());
+						cal.getEventList().remove(eventList.getSelectedIndex());
+						eventList.setListData(cal.getEventNameList().toArray());
+						repaintDay(dateViewPanel, weekPanel, cal);
+					}
+				}
+				else {
+					JOptionPane.showMessageDialog(null, "Please select an event from the history list to remove.");
+				}
+			}
+			@Override
+			public void mouseEntered(MouseEvent arg0) {}
+			@Override
+			public void mouseExited(MouseEvent arg0) {}
+			@Override
+			public void mousePressed(MouseEvent arg0) {}
+			@Override
+			public void mouseReleased(MouseEvent arg0) {}
+		});
+	}
+	private void addEventAction(JButton btnAddEvent, JTextField eventNameTxt, JTextField eventDateTxt, JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+		btnAddEvent.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				System.out.println("add btn clicked.");
+
+				getPickedColor();
+				
+				if (eventNameTxt.getText() == null || eventNameTxt.getText().isEmpty())
+					JOptionPane.showMessageDialog(null, "The event name field is empty");
+				else if (eventNameTxt.getText() == null || eventDateTxt.getText().isEmpty())
+					JOptionPane.showMessageDialog(null, "The event date field is empty");
+				else if (eventActions.addEvent(eventDateTxt.getText(), eventNameTxt.getText(), cal)) {
+					// repaint month display
+					if (displayType == 0) {
+						
+						eventList.setListData(cal.getEventNameList().toArray());
+						repaintMonth(dateViewPanel, weekPanel, cal);
+					}
+					// repaint week display
+					else if (displayType == 1) {
+						eventList.setListData(cal.getEventNameList().toArray());
+						repaintWeek(dateViewPanel, weekPanel, cal);
+					}
+					// repaint day display
+					else if (displayType == 2) {
+						eventList.setListData(cal.getEventNameList().toArray());
+						repaintDay(dateViewPanel, weekPanel, cal);
+					}
+				}
+				else
+					JOptionPane.showMessageDialog(null, "Could not add event");
+				
+				
+			}
+			@Override
+			public void mouseEntered(MouseEvent arg0) {}
+			@Override
+			public void mouseExited(MouseEvent arg0) {}
+			@Override
+			public void mousePressed(MouseEvent arg0) {}
+			@Override
+			public void mouseReleased(MouseEvent arg0) {}
+		});
 		
 	}
 	
-	private void setEvents(JPanel bottomEvent) {
+	private void setRadioBtn(JPanel togglePanel, JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+		JLabel clearLbl = new JLabel();
+		clearLbl.setPreferredSize(new Dimension(300, 150));
+		togglePanel.add(clearLbl, BorderLayout.NORTH);
 		
-		JPanel titleP = new JPanel(new FlowLayout());
-		titleP.setAlignmentY(Component.LEFT_ALIGNMENT);
-		JLabel titleL = new JLabel("Customize Calendar");
-		titleP.add(titleL);
-		bottomEvent.add(titleP);
-		
-	}
-	
-	private void setRadioBtn(JPanel topEvent) {
-		JPanel clearP = new JPanel();
-		JLabel s = new JLabel();
-		s.setPreferredSize(new Dimension(200, 120));
-		clearP.add(s);
-		
-		JPanel radioP = new JPanel(new GridLayout(0,3));
+		JPanel radioGrid = new JPanel();
+		togglePanel.add(radioGrid, BorderLayout.SOUTH);
+		radioGrid.setLayout(new GridLayout(1, 0, 0, 0));
 		
 		JRadioButton radioMonth = new JRadioButton("Month");
-		radioP.add(radioMonth);
+		radioGrid.add(radioMonth);
+		radioMonth.setSelected(true);
+		
 		JRadioButton radioWeek = new JRadioButton("Week");
-		radioP.add(radioWeek);
+		radioGrid.add(radioWeek);
+		
 		JRadioButton radioDay = new JRadioButton("Day");
-		radioP.add(radioDay);
+		radioGrid.add(radioDay);
+
+		radioMonth.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("month");
+				
+				radioMonth.setSelected(true);
+				radioWeek.setSelected(false);
+				radioDay.setSelected(false);
+				repaintMonth(dateViewPanel, weekPanel, cal);
+			}
+		});
 		
-		topEvent.add(clearP, BorderLayout.NORTH);
-		topEvent.add(radioP, BorderLayout.SOUTH);
+		radioWeek.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("week");
+				radioMonth.setSelected(false);
+				radioWeek.setSelected(true);
+				radioDay.setSelected(false);
+				repaintWeek(dateViewPanel, weekPanel, cal);
+			}
+		});
+		radioDay.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("day");
+				radioMonth.setSelected(false);
+				radioWeek.setSelected(false);
+				radioDay.setSelected(true);
+				repaintDay(dateViewPanel, weekPanel, cal);
+			}
+		});
 		
-		
+		togglePanel.add(clearLbl, BorderLayout.NORTH);
+		togglePanel.add(radioGrid, BorderLayout.SOUTH);	
 	}
 	
-	private void setTop(JPanel topPanel) {
+	private void setTitle(JPanel topPanel) {
 		// Creating JLabel for SCU logo and date 2019
 		JLabel imageL = new JLabel();
 		// User html <br> to create a new line so it can align with image. Idea from stackoverflow
@@ -143,97 +395,42 @@ public class LayoutManagerCalendar extends JFrame {
 	    }
 		// Once the grid is created with the week, it is added to the mid panel
 		midPanel.add(weekGridP);
-	
 	}
 	
-	private void setDayContent(JPanel bottomGrid, Calendar2019 cal) {
-		Calendar c = cal.getCalendar();
-		SimpleDateFormat df = new SimpleDateFormat("MMM-dd");
-		
-		//blocking first two cell in the grid since Jan 1 starts on Tuesday
-		JPanel blockPanel1 = new JPanel();
-		blockPanel1.setBackground(bgGray);
-		bottomGrid.add(blockPanel1);
-		
-		JPanel blockPanel2 = new JPanel();
-		blockPanel2.setBackground(bgGray);
-		bottomGrid.add(blockPanel2);
-		
-		// Looking through each month
-		for (int i = 0; i < monthsString.length; i++) {
-			// Set the calendar to the right month
-			c.set(Calendar.MONTH, i);
-			
-			// Getting the amount of days in the month
-			int days = cal.getDaysInMonth(i + 1);
-			
-			// Looping through each day of the month to create components
-			for (int j = 1; j <= days; j++) {
-				// Each call in the grid will have 3 rows.
-				JPanel dayContentGrid = new JPanel(new GridLayout(3,0));
-				
-				// Set the day of the calendar
-		        c.set(Calendar.DAY_OF_MONTH, j);
-		        
-		        // check each day to see if it is a holiday and return the name
-		        String holiday = cal.checkHolidays(c);
-		        
-		        // Create the Date and Content label. Used to populate the grid cell
-		        JLabel dateL = new JLabel(df.format(c.getTime()), SwingConstants.CENTER);
-		        JLabel contentL = new JLabel();
-		        
-		        // There is a holiday add context to the Content Label
-				if (holiday.length() > 0)
-				{	contentL.setFont(new Font("Trajan", Font.PLAIN, 12));
-					contentL.setForeground(scuRed);
-					contentL.setText(holiday);
-				}
-				
-				// Change the date color for the first of the month
-				if (c.get(Calendar.DAY_OF_MONTH) == 1){
-					dateL.setForeground(Color.yellow);
-				}
-				
-				// Customize the date label
-				Color dateGray = new Color(166, 166, 166);
-				dateL.setFont(new Font("Trajan", Font.PLAIN, 12));
-				dateL.setBorder(new MatteBorder(0, 0, 1, 0, Color.black));
-				dateL.setBackground(dateGray);
-				dateL.setOpaque(true);
-		
-				// customize the cell grid
-				dayContentGrid.setBackground(contentGray);
-				dayContentGrid.setBorder(new LineBorder(Color.black, 1));
-				dayContentGrid.setPreferredSize(new Dimension(150, 150));
-				
-				// adding 3 labels to the cell grid
-				dayContentGrid.add(dateL);
-				dayContentGrid.add(contentL);
-				dayContentGrid.add(new JLabel());
-				
-				// adding the individual cell to the main grid
-				bottomGrid.add(dayContentGrid);		
-		    }
-		}
+	private void repaintMonth(JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+		dateViewPanel.removeAll();
+		dateViewPanel.revalidate();
+		dateViewPanel.repaint();
+		weekPanel.removeAll();
+		weekPanel.revalidate();
+		weekPanel.repaint();
+		setWeekGrid(weekPanel);
+		displayType = 0;
+		LayoutManagerCalendar.this.monthDisplay.setMonthGrid(dateViewPanel, cal);
 	}
 	
-	private void setDaysGrid(JPanel bottomPanel, Calendar2019 cal) {
-		// Using a grid layout to display each day of the month. Not setting Rows so it can grow as needed 
-		JPanel bottomGridP = new JPanel(new GridLayout(0,7));
-		bottomGridP.setBackground(bgGray);
-		
-		// Calling the function to populate the grid with days
-		setDayContent(bottomGridP, cal);
-		
-		// Creating a scroll component for the calendar
-		JScrollPane scroll = new JScrollPane(bottomGridP);
-		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scroll.setPreferredSize(new Dimension(1150,750));
-		scroll.setBackground(bgGray);
-		
-		bottomPanel.add(scroll);
-
+	private void repaintWeek(JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+		dateViewPanel.removeAll();
+		dateViewPanel.revalidate();
+		dateViewPanel.repaint();
+		weekPanel.removeAll();
+		weekPanel.revalidate();
+		weekPanel.repaint();
+		setWeekGrid(weekPanel);
+		displayType = 1;
+		LayoutManagerCalendar.this.weekDisplay.setWeekGrid(dateViewPanel, cal);
 	}
+	
+	private void repaintDay(JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+		dateViewPanel.removeAll();
+		dateViewPanel.revalidate();
+		dateViewPanel.repaint();
+		weekPanel.removeAll();
+		weekPanel.revalidate();
+		weekPanel.repaint();
+		displayType = 2;
+		LayoutManagerCalendar.this.dayDisplay.setDayGrid(dateViewPanel, cal);
+	}
+	
 }
 
