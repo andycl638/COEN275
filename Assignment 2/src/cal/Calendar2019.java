@@ -112,6 +112,7 @@ public class Calendar2019 {
 		
 	}
 	
+	// check if an event exists and return the name
 	public String checkEvents(Calendar cal) {
 		Calendar tempCal = Calendar.getInstance();
 		

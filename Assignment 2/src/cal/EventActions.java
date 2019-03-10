@@ -5,17 +5,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Pattern;
 
-public class eventActions {
+public class EventActions {
 	
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 	//private Date afterDate = dateFormat.parse("12/31/2018");
 	
+	// add the event the event arraylist
 	public static boolean addEvent(String inputDate, String eventName, Calendar2019 cal) {
 		
 		if (checkDateFormat(inputDate)) {
 			try {
+				// convert string date to Date type
 				Date eventDate = dateFormat.parse(inputDate);
 				if (isValidDate(eventDate)) {
+					//add event date and name to arraylist
 					cal.setEvent(eventDate);
 					cal.setEventName(eventName);
 					return true;
@@ -48,15 +51,18 @@ public class eventActions {
 		return false;
 	}
 	
+	// check if the inputed date is within 2019 calendar year
+	// return true if it is
 	public static boolean isValidDate(Date inputDate) throws ParseException {
 		Date afterDate = dateFormat.parse("12/31/2018");
 		Date beforeDate = dateFormat.parse("01/01/2020");
+		
 		if (inputDate.after(afterDate) && inputDate.before(beforeDate)) {
-			System.out.println("isValidDate(): valid date" + inputDate.toString());
+			//System.out.println("isValidDate(): valid date" + inputDate.toString());
 			return true;
 		}
 		
-		System.out.println("isValidDate(): invalid date" + inputDate.toString());
+		//System.out.println("isValidDate(): invalid date" + inputDate.toString());
 		return false;
 	}
 }

@@ -13,10 +13,10 @@ public class LayoutManagerCalendar extends JFrame {
 	private static String[] daysInWeek = { "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY" };
 	static String[] monthsString = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 	
+	// Colors used in GUI
 	static protected Color scuRed = new Color(181,0,67); // scu red color
 	static protected Color bgGray = new Color(77, 77, 77); // darker gray
 	static protected Color contentGray = new Color(179, 179, 179); // lighter grey
-	
 	static protected Color selectedColor = scuRed;
 	
 	private MonthDisplay monthDisplay; 
@@ -28,6 +28,9 @@ public class LayoutManagerCalendar extends JFrame {
 	// panels
 	private JList<Object> eventList = new JList<Object>();
 	private JComboBox<String> comboBox = new JComboBox<String>(new DefaultComboBoxModel<String>(new String[] {"red", "green", "white", "blue", "pink"}));
+	JPanel dateViewPanel = new JPanel(new FlowLayout());
+	JPanel weekPanel = new JPanel(new FlowLayout());
+	JPanel titlePanel = new JPanel(new FlowLayout());
 	
 	LayoutManagerCalendar(){
 		this.monthDisplay = new MonthDisplay();
@@ -58,14 +61,13 @@ public class LayoutManagerCalendar extends JFrame {
 		setTitle(titlePanel);
 		
 		// Creating week panel
-		JPanel weekPanel = new JPanel(new FlowLayout());
+		
 		weekPanel.setBackground(bgGray);
 		weekPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
 		calendarBoxLayout.add(weekPanel);
 		setWeekGrid(weekPanel);
 		
 		// creating date view panel
-		JPanel dateViewPanel = new JPanel(new FlowLayout());
 		dateViewPanel.setBackground(bgGray);
 		dateViewPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
 		calendarBoxLayout.add(dateViewPanel);
@@ -81,20 +83,21 @@ public class LayoutManagerCalendar extends JFrame {
 		// radio panel section
 		JPanel togglePanel = new JPanel(new BorderLayout());
 		eventLayout.add(togglePanel, BorderLayout.NORTH);
-		setRadioBtn(togglePanel, dateViewPanel, weekPanel, cal);
+		setRadioBtn(togglePanel, cal);
 		
 		// event panel section
 		JPanel customEventPanel = new JPanel();
 		customEventPanel.setLayout(new BoxLayout(customEventPanel, BoxLayout.Y_AXIS));
 		eventLayout.add(customEventPanel, BorderLayout.CENTER);
-		setEvents(customEventPanel, dateViewPanel, weekPanel, cal);
+		setEvents(customEventPanel, cal);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		pack();
 		setVisible(true);
 	}
 	
-	private void setEvents (JPanel customEventPanel, JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+	private void setEvents (JPanel customEventPanel, Calendar2019 cal) {
+		
 		JPanel clearLbl2 = new JPanel();
 		clearLbl2.setPreferredSize(new Dimension(300, 20));
 		customEventPanel.add(clearLbl2);
@@ -185,11 +188,12 @@ public class LayoutManagerCalendar extends JFrame {
 		JButton btnRemove = new JButton("Remove");
 		historyP.add(btnRemove, BorderLayout.SOUTH);
 		
-		addEventAction(btnAddEvent, eventNameTxt, eventDateTxt, dateViewPanel, weekPanel, cal);
-		removeEventAction(btnRemove, eventNameTxt, eventDateTxt, dateViewPanel, weekPanel, cal);
+		addEventAction(btnAddEvent, eventNameTxt, eventDateTxt, cal);
+		removeEventAction(btnRemove, eventNameTxt, eventDateTxt, cal);
 
 	}
 	
+	// pick the user selected color
 	private void getPickedColor() {
 		String color = comboBox.getSelectedItem().toString();
 		if (color.equalsIgnoreCase("red")) {
@@ -209,7 +213,8 @@ public class LayoutManagerCalendar extends JFrame {
 		}
 	}
 	
-	private void removeEventAction(JButton btnRemove, JTextField eventNameTxt, JTextField eventDateTxt, JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+	// On mouse click, it will remove the event selected by the user
+	private void removeEventAction(JButton btnRemove, JTextField eventNameTxt, JTextField eventDateTxt, Calendar2019 cal) {
 		btnRemove.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
@@ -222,21 +227,21 @@ public class LayoutManagerCalendar extends JFrame {
 						cal.getEventNameList().remove(eventList.getSelectedIndex());
 						cal.getEventList().remove(eventList.getSelectedIndex());
 						eventList.setListData(cal.getEventNameList().toArray());
-						repaintMonth(dateViewPanel, weekPanel, cal);
+						repaintMonth(cal);
 					}
 					// repaint week display
 					else if (displayType == 1) {
 						cal.getEventNameList().remove(eventList.getSelectedIndex());
 						cal.getEventList().remove(eventList.getSelectedIndex());
 						eventList.setListData(cal.getEventNameList().toArray());
-						repaintWeek(dateViewPanel, weekPanel, cal);
+						repaintWeek(cal);
 					}
 					// repaint day display
 					else if (displayType == 2) {
 						cal.getEventNameList().remove(eventList.getSelectedIndex());
 						cal.getEventList().remove(eventList.getSelectedIndex());
 						eventList.setListData(cal.getEventNameList().toArray());
-						repaintDay(dateViewPanel, weekPanel, cal);
+						repaintDay(cal);
 					}
 				}
 				else {
@@ -253,34 +258,38 @@ public class LayoutManagerCalendar extends JFrame {
 			public void mouseReleased(MouseEvent arg0) {}
 		});
 	}
-	private void addEventAction(JButton btnAddEvent, JTextField eventNameTxt, JTextField eventDateTxt, JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+	
+	// On mouse click, add event to calendar and history
+	private void addEventAction(JButton btnAddEvent, JTextField eventNameTxt, JTextField eventDateTxt, Calendar2019 cal) {
 		btnAddEvent.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 				System.out.println("add btn clicked.");
-
+				
+				// get the color picked by user
 				getPickedColor();
 				
 				if (eventNameTxt.getText() == null || eventNameTxt.getText().isEmpty())
 					JOptionPane.showMessageDialog(null, "The event name field is empty");
 				else if (eventNameTxt.getText() == null || eventDateTxt.getText().isEmpty())
 					JOptionPane.showMessageDialog(null, "The event date field is empty");
-				else if (eventActions.addEvent(eventDateTxt.getText(), eventNameTxt.getText(), cal)) {
+				// check if user inputed date is valid and within 2019 calendar year
+				else if (EventActions.addEvent(eventDateTxt.getText(), eventNameTxt.getText(), cal)) {
+					
 					// repaint month display
 					if (displayType == 0) {
-						
 						eventList.setListData(cal.getEventNameList().toArray());
-						repaintMonth(dateViewPanel, weekPanel, cal);
+						repaintMonth(cal);
 					}
 					// repaint week display
 					else if (displayType == 1) {
 						eventList.setListData(cal.getEventNameList().toArray());
-						repaintWeek(dateViewPanel, weekPanel, cal);
+						repaintWeek(cal);
 					}
 					// repaint day display
 					else if (displayType == 2) {
 						eventList.setListData(cal.getEventNameList().toArray());
-						repaintDay(dateViewPanel, weekPanel, cal);
+						repaintDay(cal);
 					}
 				}
 				else
@@ -300,7 +309,8 @@ public class LayoutManagerCalendar extends JFrame {
 		
 	}
 	
-	private void setRadioBtn(JPanel togglePanel, JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+	// Create the radio buttons for month, week, and day
+	private void setRadioBtn(JPanel togglePanel, Calendar2019 cal) {
 		JLabel clearLbl = new JLabel();
 		clearLbl.setPreferredSize(new Dimension(300, 150));
 		togglePanel.add(clearLbl, BorderLayout.NORTH);
@@ -322,36 +332,35 @@ public class LayoutManagerCalendar extends JFrame {
 		radioMonth.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				System.out.println("month");
 				
+				System.out.println("month");
 				radioMonth.setSelected(true);
 				radioWeek.setSelected(false);
 				radioDay.setSelected(false);
-				repaintMonth(dateViewPanel, weekPanel, cal);
+				repaintMonth(cal);
 			}
 		});
 		
 		radioWeek.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
+				
 				System.out.println("week");
 				radioMonth.setSelected(false);
 				radioWeek.setSelected(true);
 				radioDay.setSelected(false);
-				repaintWeek(dateViewPanel, weekPanel, cal);
+				repaintWeek(cal);
 			}
 		});
 		radioDay.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
+				
 				System.out.println("day");
 				radioMonth.setSelected(false);
 				radioWeek.setSelected(false);
 				radioDay.setSelected(true);
-				repaintDay(dateViewPanel, weekPanel, cal);
+				repaintDay(cal);
 			}
 		});
 		
@@ -359,6 +368,7 @@ public class LayoutManagerCalendar extends JFrame {
 		togglePanel.add(radioGrid, BorderLayout.SOUTH);	
 	}
 	
+	// Create the title
 	private void setTitle(JPanel topPanel) {
 		// Creating JLabel for SCU logo and date 2019
 		JLabel imageL = new JLabel();
@@ -397,7 +407,8 @@ public class LayoutManagerCalendar extends JFrame {
 		midPanel.add(weekGridP);
 	}
 	
-	private void repaintMonth(JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+	// repaints the date view to display month
+	private void repaintMonth(Calendar2019 cal) {
 		dateViewPanel.removeAll();
 		dateViewPanel.revalidate();
 		dateViewPanel.repaint();
@@ -409,7 +420,8 @@ public class LayoutManagerCalendar extends JFrame {
 		LayoutManagerCalendar.this.monthDisplay.setMonthGrid(dateViewPanel, cal);
 	}
 	
-	private void repaintWeek(JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+	// repaints the date view to display it in month
+	private void repaintWeek(Calendar2019 cal) {
 		dateViewPanel.removeAll();
 		dateViewPanel.revalidate();
 		dateViewPanel.repaint();
@@ -421,7 +433,8 @@ public class LayoutManagerCalendar extends JFrame {
 		LayoutManagerCalendar.this.weekDisplay.setWeekGrid(dateViewPanel, cal);
 	}
 	
-	private void repaintDay(JPanel dateViewPanel, JPanel weekPanel, Calendar2019 cal) {
+	// repaints the date view to display it in month
+	private void repaintDay(Calendar2019 cal) {
 		dateViewPanel.removeAll();
 		dateViewPanel.revalidate();
 		dateViewPanel.repaint();
